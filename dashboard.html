@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gerenciamento de Dados</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/parse/3.4.3/parse.min.js"></script>
+
+    <style>
+        :root {
+            --branco-principal: #FFFFFF;
+            --cinza-secundario: #C0C0C0;
+            --botao-azul: #167BF7;
+            --cor-de-fundo: #2c3e50;
+            --botao-vermelho: #FF0000;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--cor-de-fundo);
+            color: var(--branco-principal);
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        /* Botão Sair posicionado no canto superior direito */
+        .header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 20px;
+            background-color: #34495e;
+        }
+
+        .header__sair {
+            text-decoration: none;
+            color: var(--branco-principal);
+            background-color: var(--botao-azul);
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .header__sair:hover {
+            background-color: var(--botao-vermelho);
+        }
+
+        /* Centralização dos botões de categoria */
+        .category-buttons {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        button {
+            background-color: var(--botao-azul);
+            color: white;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .filter-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .filter-container input {
+            padding: 10px;
+            width: 250px;
+            border: none;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background-color: #fff;
+            color: black;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--cinza-secundario);
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        td button {
+            background-color: #28a745;
+            padding: 6px 12px;
+            margin: 2px;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        td button:hover {
+            background-color: #218838;
+        }
+
+        td .delete-btn {
+            background-color: #dc3545;
+        }
+
+        td .delete-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <a href="login.html" class="header__sair">Sair</a>
+    </header>
+
+    <h1>Dashboard de Dados</h1>
+
+
+    <h2>Selecione uma categoria:</h2>
+    <div class="category-buttons">
+        <button onclick="exibirDados('Doador')">Doadores</button>
+        <button onclick="exibirDados('Coleta')">Coletas</button>
+        <button onclick="exibirDados('Comunidade')">Comunidade</button>
+        <button onclick="exibirDados('Produtos')">Produtos</button>
+    </div>
+
+
+    <div class="filter-container">
+        <input type="text" id="filtro" placeholder="Filtrar por palavra-chave" oninput="aplicarFiltro()">
+    </div>
+
+
+    <h2>Dados da Categoria</h2>
+    <table id="dataTable">
+        <thead>
+            <tr id="tableHeaders">
+                <!-- Os cabeçalhos serão inseridos aqui -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Os dados serão inseridos aqui -->
+        </tbody>
+    </table>
+
+    <script>
+
+        Parse.initialize('winm9cbnUUSt37DOLHgvXRBdSbRLRyv4RXW7WvvD', 'jcrjxZKfxwXXqldjxT9SIG1tPUil7O0YzlUc70Dd');
+        Parse.serverURL = "https://parseapi.back4app.com/";
+
+        let currentData = [];
+
+        window.onload = verificarAutenticacao;
+
+        function verificarAutenticacao() {
+            const currentUser = Parse.User.current();
+            if (!currentUser) {
+                alert("Você precisa estar logado para acessar esta página.");
+                window.location.href = "login.html";
+            }
+        }
+
+
+        async function exibirDados(classe) {
+            const ClassObject = Parse.Object.extend(classe);
+            const query = new Parse.Query(ClassObject);
+            try {
+                const results = await query.find();
+                currentData = results; // Armazena os dados para filtrar posteriormente
+                renderizarTabela(results);
+            } catch (error) {
+                console.error(`Erro ao buscar dados de ${classe}:`, error);
+                alert(`Erro ao buscar dados de ${classe}.`);
+            }
+        }
+
+
+        function renderizarTabela(results) {
+            const tableHeaders = document.getElementById("tableHeaders");
+            const tableBody = document.querySelector("#dataTable tbody");
+            tableHeaders.innerHTML = "";
+            tableBody.innerHTML = "";
+
+            if (results.length > 0) {
+                const firstObject = results[0];
+                for (let key in firstObject.attributes) {
+                    const headerCell = document.createElement('th');
+                    headerCell.textContent = key;
+                    tableHeaders.appendChild(headerCell);
+                }
+
+
+                const actionsHeader = document.createElement('th');
+                actionsHeader.textContent = "Ações";
+                tableHeaders.appendChild(actionsHeader);
+
+
+                results.forEach(object => {
+                    const row = tableBody.insertRow();
+
+                    for (let key in object.attributes) {
+                        const cell = row.insertCell();
+                        cell.textContent = object.get(key);
+                    }
+
+
+                    const actionsCell = row.insertCell();
+                    const editButton = document.createElement('button');
+                    editButton.textContent = "Editar";
+                    editButton.onclick = () => editarDado(object.className, object.id);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = "Excluir";
+                    deleteButton.className = "delete-btn";
+                    deleteButton.onclick = () => excluirDado(object.className, object.id);
+
+                    actionsCell.appendChild(editButton);
+                    actionsCell.appendChild(deleteButton);
+                });
+            } else {
+                alert("Nenhum dado encontrado.");
+            }
+        }
+
+
+        function aplicarFiltro() {
+            const filtro = document.getElementById("filtro").value.toLowerCase();
+            const dadosFiltrados = currentData.filter(object => {
+                return Object.values(object.attributes).some(value =>
+                    String(value).toLowerCase().includes(filtro)
+                );
+            });
+            renderizarTabela(dadosFiltrados);
+        }
+
+
+        function editarDado(classe, id) {
+            alert(`Editar ${classe} com ID: ${id}`);
+        }
+
+
+        async function excluirDado(classe, id) {
+            const ClassObject = Parse.Object.extend(classe);
+            const query = new Parse.Query(ClassObject);
+            try {
+                const object = await query.get(id);
+                await object.destroy();
+                alert(`${classe} excluído com sucesso!`);
+                exibirDados(classe);
+            } catch (error) {
+                console.error(`Erro ao excluir ${classe}:`, error);
+                alert(`Erro ao excluir ${classe}.`);
+            }
+        }
+
+
+        function logout() {
+            Parse.User.logOut().then(() => {
+                alert("Você saiu com sucesso.");
+                window.location.href = "login.html";
+            }).catch((error) => {
+                console.error("Erro ao sair: ", error);
+            });
+        }
+    </script>
+</body>
+
+</html>
