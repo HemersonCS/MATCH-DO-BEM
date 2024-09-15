@@ -28,7 +28,6 @@
             text-align: center;
         }
 
-        /* Botão Sair posicionado no canto superior direito */
         .header {
             display: flex;
             justify-content: flex-end;
@@ -49,7 +48,6 @@
             background-color: var(--botao-vermelho);
         }
 
-        /* Centralização dos botões de categoria */
         .category-buttons {
             text-align: center;
             margin: 20px 0;
@@ -157,11 +155,11 @@
     <table id="dataTable">
         <thead>
             <tr id="tableHeaders">
-                <!-- Os cabeçalhos serão inseridos aqui -->
+                
             </tr>
         </thead>
         <tbody>
-            <!-- Os dados serão inseridos aqui -->
+            
         </tbody>
     </table>
 
@@ -188,7 +186,7 @@
             const query = new Parse.Query(ClassObject);
             try {
                 const results = await query.find();
-                currentData = results; // Armazena os dados para filtrar posteriormente
+                currentData = results; 
                 renderizarTabela(results);
             } catch (error) {
                 console.error(`Erro ao buscar dados de ${classe}:`, error);
